@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import os
 
 import sys
 import os
@@ -8,61 +9,53 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from config import cookies_headers
 
-def get_followers(user_id, headers, max_usernames=100):
-    # Initialize variables
-    usernames = []
-    cursor = None
+def load_saved_data(filename):
+    """Load previously saved followers data and cursor"""
+    if os.path.exists(filename):
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data.get('followers', []), data.get('cursor', None)
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"Error loading saved data: {e}")
+            return [], None
+    return [], None
+
+def save_data(filename, followers, cursor):
+    """Save followers data and cursor to JSON file"""
+    data = {
+        'followers': followers,
+        'cursor': cursor,
+        'total_count': len(followers),
+        'last_updated': time.strftime('%Y-%m-%d %H:%M:%S')
+    }
+    try:
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        print(f"Saved {len(followers)} followers to {filename}")
+    except Exception as e:
+        print(f"Error saving data: {e}")
+
+def get_followers(user_id, headers, max_usernames=100, save_filename='followers_data.json'):
+    # Load previously saved data
+    followers, saved_cursor = load_saved_data(save_filename)
+    print(f"Loaded {len(followers)} previously saved followers")
+    
+    if saved_cursor:
+        print(f"Resuming from cursor: {saved_cursor[:50]}...")
+        cursor = saved_cursor
+    else:
+        cursor = None
+    
     base_url = 'https://x.com/i/api/graphql/k8IHkYttROUDoDNevQ7Ehw/Followers'
     
-    while len(usernames) < max_usernames:
-        # Prepare parameters
-        variables = {
-            "userId": user_id,
-            "count": 20,
-            "includePromotedContent": False,
-            "withSuperFollowsUserFields": True,
-			"withDownvotePerspective": False,
-			"withReactionsMetadata": False,
-			"withReactionsPerspective": False,
-			"withSuperFollowsTweetFields": True
-        }
-        features = {
-            "rweb_video_screen_enabled": False,
-            "payments_enabled": False,
-            "profile_label_improvements_pcf_label_in_post_enabled": True,
-            "rweb_tipjar_consumption_enabled": True,
-            "verified_phone_label_enabled": False,
-            "creator_subscriptions_tweet_preview_api_enabled": True,
-            "responsive_web_graphql_timeline_navigation_enabled": True,
-            "responsive_web_graphql_skip_user_profile_image_extensions_enabled": False,
-            "premium_content_api_read_enabled": False,
-            "communities_web_enable_tweet_community_results_fetch": True,
-            "c9s_tweet_anatomy_moderator_badge_enabled": True,
-            "responsive_web_grok_analyze_button_fetch_trends_enabled": False,
-            "responsive_web_grok_analyze_post_followups_enabled": True,
-            "responsive_web_jetfuel_frame": True,
-            "responsive_web_grok_share_attachment_enabled": True,
-            "articles_preview_enabled": True,
-            "responsive_web_edit_tweet_api_enabled": True,
-            "graphql_is_translatable_rweb_tweet_is_translatable_enabled": True,
-            "view_counts_everywhere_api_enabled": True,
-            "longform_notetweets_consumption_enabled": True,
-            "responsive_web_twitter_article_tweet_consumption_enabled": True,
-            "tweet_awards_web_tipping_enabled": False,
-            "responsive_web_grok_show_grok_translated_post": False,
-            "responsive_web_grok_analysis_button_from_backend": True,
-            "creator_subscriptions_quote_tweet_preview_enabled": False,
-            "freedom_of_speech_not_reach_fetch_enabled": True,
-            "standardized_nudges_misinfo": True,
-            "tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled": True,
-            "longform_notetweets_rich_text_read_enabled": True,
-            "longform_notetweets_inline_media_enabled": True,
-            "responsive_web_grok_image_annotation_enabled": True,
-            "responsive_web_grok_community_note_auto_translation_is_enabled": False,
-            "responsive_web_enhance_cards_enabled": False
-		}
+    while len(followers) < max_usernames:
+        variables = cookies_headers.API_VARIABLES
+        variables["userId"] = user_id
+        features = cookies_headers.API_FEATURES
+
         if cursor:
-            print(f"CURSSOOOOOOORRR : {cursor}")
+            print(f"Using cursor: {cursor[:50]}...")
             variables["cursor"] = cursor
             
         params = {
@@ -76,6 +69,7 @@ def get_followers(user_id, headers, max_usernames=100):
             response.raise_for_status()
             data = response.json()
 
+            # Save raw response for debugging (optional)
             import sys
             import os
             sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -84,47 +78,88 @@ def get_followers(user_id, headers, max_usernames=100):
             common_utils.save_json_file_to_disk("test.json", data)
 
             # Extract followers from response
+            new_followers_count = 0
+            next_cursor = None
+            
             try:
                 instructions = data['data']['user']['result']['timeline']['timeline']['instructions']
                 for instruction in instructions:
                     if instruction['type'] == 'TimelineAddEntries':
                         for entry in instruction['entries']:
                             if entry['content']['entryType'] == 'TimelineTimelineItem':
-                                username = entry['content']['itemContent']['user_results']['result']['core']['screen_name']
-                                name = entry['content']['itemContent']['user_results']['result']['core']['name']
-                                usernames.append(username)
-                                print(f"Username {len(usernames)}: {username}")
-                                # Break if we reached max_usernames
-                                if len(usernames) >= max_usernames:
-                                    return usernames
+                                try:
+                                    user_data = entry['content']['itemContent']['user_results']['result']['core']
+                                    username = user_data['screen_name']
+                                    name = user_data['name']
+                                    
+                                    # Check if user already exists (avoid duplicates)
+                                    if not any(follower['username'] == username for follower in followers):
+                                        follower_info = {
+                                            'username': username,
+                                            'name': name
+                                        }
+                                        followers.append(follower_info)
+                                        new_followers_count += 1
+                                        print(f"Added follower {len(followers)}: @{username} ({name})")
+                                    
+                                    # Break if we reached max_usernames
+                                    if len(followers) >= max_usernames:
+                                        save_data(save_filename, followers, cursor)
+                                        return followers
+                                        
+                                except (KeyError, TypeError) as e:
+                                    print(f"Error parsing user data: {e}")
+                                    continue
 
                             # Get next cursor
-                            if entry['content']['entryType'] == 'TimelineTimelineCursor' and entry['content']['cursorType'] == 'Bottom':
-                                cursor = entry['content']["value"]
-                                print(cursor)
+                            elif entry['content']['entryType'] == 'TimelineTimelineCursor' and entry['content']['cursorType'] == 'Bottom':
+                                next_cursor = entry['content']["value"]
+                                print(f"Found next cursor: {next_cursor[:50]}...")
             
             except (KeyError, TypeError) as e:
                 print(f"Error parsing response: {e}")
                 break
 
+            # Update cursor for next iteration
+            cursor = next_cursor
+            
+            # Save progress after each batch
+            save_data(save_filename, followers, cursor)
+            print(f"Saved progress: {len(followers)} total followers, {new_followers_count} new in this batch")
+
             # If no more cursor, break the loop
             if not cursor:
+                print("No more pages to fetch")
                 break
 
             # Rate limiting: sleep to avoid hitting API limits
-            time.sleep(300)
+            print("Waiting 60 seconds before next request...")
+            time.sleep(60)
 
         except requests.RequestException as e:
             print(f"Request failed: {e}")
+            # Save current progress before breaking
+            save_data(save_filename, followers, cursor)
             break
 
-    return usernames
+    # Final save
+    save_data(save_filename, followers, None)  # Clear cursor when finished
+    return followers
 
-# Example usage
 if __name__ == "__main__":
-    cookies = cookies_headers.API_COOKIES
     headers = cookies_headers.API_HEADERS
 
     user_id = "1468103131737247748"  # Amit
-    followers = get_followers(user_id, headers)
+    save_filename = f"followers_{user_id}.json"
+    
+    print("Starting followers collection...")
+    followers = get_followers(user_id, headers, max_usernames=200000, save_filename=save_filename)
     print(f"\nTotal followers retrieved: {len(followers)}")
+    
+    # Print summary
+    if followers:
+        print("\nSample followers:")
+        for i, follower in enumerate(followers[:5]):  # Show first 5
+            print(f"  {i+1}. @{follower['username']} - {follower['name']}")
+        if len(followers) > 5:
+            print(f"  ... and {len(followers) - 5} more")
