@@ -8,15 +8,16 @@ tickers = [
     {"ticker": "TSLA", "discount_rate": 45},
     # {"ticker": "VOO", "discount_rate": 10},
     {"ticker": "RKLB", "discount_rate": 20},
-    {"ticker": "ASTS", "discount_rate": 20},
-    {"ticker": "HIMS", "discount_rate": 39},
+    {"ticker": "ASTS", "discount_rate": 25},
+    {"ticker": "HIMS", "discount_rate": 39, "csp_percentage_down": -0.20},
     {"ticker": "BTC-USD", "discount_rate": 30},
+    {"ticker": "MSTR", "discount_rate": 25},
     {"ticker": "NEXT", "discount_rate": 20},
     {"ticker": "NBIS", "discount_rate": 50},
-    {"ticker": "ACHR", "discount_rate": 35},
-    {"ticker": "JOBY", "discount_rate": 25},
-    {"ticker": "OSCR", "discount_rate": 41},
-    {"ticker": "ELF", "discount_rate": 45},
+    {"ticker": "RDW", "discount_rate": 70, "csp_percentage_down": -0.60},
+    # {"ticker": "ACHR", "discount_rate": 35},
+    # {"ticker": "JOBY", "discount_rate": 25},
+    # {"ticker": "OSCR", "discount_rate": 41},
     # {"ticker": "TEM", "discount_rate": 36.5},
-    {"ticker": "VG", "discount_rate": 65, "csp_percentage_down": -0.13}
+    {"ticker": "VG", "discount_rate": 65, "csp_percentage_down": -0.25}
 ]

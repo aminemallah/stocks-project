@@ -2,53 +2,66 @@ import requests
 import json
 import time
 import os
-
 import sys
-import os
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
 from config import cookies_headers
 
-def load_saved_data(filename):
-    """Load previously saved followers data and cursor"""
-    if os.path.exists(filename):
-        try:
-            with open(filename, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return data.get('followers', []), data.get('cursor', None)
-        except (json.JSONDecodeError, KeyError) as e:
-            print(f"Error loading saved data: {e}")
-            return [], None
-    return [], None
+def load_followers_jsonl(data_filename, meta_filename):
+    """Load followers and cursor from JSONL + metadata file."""
+    followers = []
+    cursor = None
 
-def save_data(filename, followers, cursor):
-    """Save followers data and cursor to JSON file"""
-    data = {
-        'followers': followers,
-        'cursor': cursor,
-        'total_count': len(followers),
-        'last_updated': time.strftime('%Y-%m-%d %H:%M:%S')
+    if os.path.exists(data_filename):
+        with open(data_filename, 'r', encoding='utf-8') as f:
+            for line in f:
+                try:
+                    followers.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+
+    if os.path.exists(meta_filename):
+        with open(meta_filename, 'r', encoding='utf-8') as f:
+            try:
+                metadata = json.load(f)
+                cursor = metadata.get("cursor")
+            except json.JSONDecodeError:
+                pass
+
+    return followers, cursor
+
+def append_follower_jsonl(data_filename, follower):
+    """Append a single follower to the JSONL file."""
+    with open(data_filename, 'a', encoding='utf-8') as f:
+        json.dump(follower, f, ensure_ascii=False)
+        f.write('\n')
+
+def save_metadata(meta_filename, cursor, count):
+    """Save metadata like cursor and count."""
+    metadata = {
+        "cursor": cursor,
+        "total_count": count,
+        "last_updated": time.strftime('%Y-%m-%d %H:%M:%S')
     }
-    try:
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        print(f"Saved {len(followers)} followers to {filename}")
-    except Exception as e:
-        print(f"Error saving data: {e}")
+    with open(meta_filename, 'w', encoding='utf-8') as f:
+        json.dump(metadata, f, indent=2)
 
-def get_followers(user_id, headers, max_usernames=100, save_filename='followers_data.json'):
-    # Load previously saved data
-    followers, saved_cursor = load_saved_data(save_filename)
+def get_followers(user_id, headers, max_usernames=100, base_filename='followers'):
+    data_filename = f"{base_filename}.jsonl"
+    meta_filename = f"{base_filename}.meta.json"
+
+    followers, saved_cursor = load_followers_jsonl(data_filename, meta_filename)
+    usernames_set = set(f['username'] for f in followers)
+
     print(f"Loaded {len(followers)} previously saved followers")
-    
     if saved_cursor:
         print(f"Resuming from cursor: {saved_cursor[:50]}...")
-        cursor = saved_cursor
-    else:
-        cursor = None
-    
-    base_url = 'https://x.com/i/api/graphql/k8IHkYttROUDoDNevQ7Ehw/Followers'
-    
+
+    cursor = saved_cursor
+    base_url = 'https://x.com/i/api/graphql/mCKZXEfy1vBxKiWEddhRDA/Followers'
+
     while len(followers) < max_usernames:
         variables = cookies_headers.API_VARIABLES
         variables["userId"] = user_id
@@ -57,109 +70,83 @@ def get_followers(user_id, headers, max_usernames=100, save_filename='followers_
         if cursor:
             print(f"Using cursor: {cursor[:50]}...")
             variables["cursor"] = cursor
-            
+
         params = {
             'variables': json.dumps(variables),
             'features': json.dumps(features)
         }
 
         try:
-            # Make API request
             response = requests.get(base_url, params=params, headers=headers)
             response.raise_for_status()
             data = response.json()
 
-            # Save raw response for debugging (optional)
-            import sys
-            import os
-            sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-            sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+            # Optionally save raw data for debugging
             from common import common_utils
             common_utils.save_json_file_to_disk("test.json", data)
 
-            # Extract followers from response
             new_followers_count = 0
             next_cursor = None
-            
-            try:
-                instructions = data['data']['user']['result']['timeline']['timeline']['instructions']
-                for instruction in instructions:
-                    if instruction['type'] == 'TimelineAddEntries':
-                        for entry in instruction['entries']:
-                            if entry['content']['entryType'] == 'TimelineTimelineItem':
-                                try:
-                                    user_data = entry['content']['itemContent']['user_results']['result']['core']
-                                    username = user_data['screen_name']
-                                    name = user_data['name']
-                                    
-                                    # Check if user already exists (avoid duplicates)
-                                    if not any(follower['username'] == username for follower in followers):
-                                        follower_info = {
-                                            'username': username,
-                                            'name': name
-                                        }
-                                        followers.append(follower_info)
-                                        new_followers_count += 1
-                                        print(f"Added follower {len(followers)}: @{username} ({name})")
-                                    
-                                    # Break if we reached max_usernames
-                                    if len(followers) >= max_usernames:
-                                        save_data(save_filename, followers, cursor)
-                                        return followers
-                                        
-                                except (KeyError, TypeError) as e:
-                                    print(f"Error parsing user data: {e}")
-                                    continue
 
-                            # Get next cursor
-                            elif entry['content']['entryType'] == 'TimelineTimelineCursor' and entry['content']['cursorType'] == 'Bottom':
-                                next_cursor = entry['content']["value"]
-                                print(f"Found next cursor: {next_cursor[:50]}...")
-            
-            except (KeyError, TypeError) as e:
-                print(f"Error parsing response: {e}")
-                break
+            instructions = data['data']['user']['result']['timeline']['timeline']['instructions']
+            for instruction in instructions:
+                if instruction['type'] == 'TimelineAddEntries':
+                    for entry in instruction['entries']:
+                        if entry['content']['entryType'] == 'TimelineTimelineItem':
+                            try:
+                                user_data = entry['content']['itemContent']['user_results']['result']['core']
+                                username = user_data['screen_name']
+                                name = user_data['name']
 
-            # Update cursor for next iteration
+                                if username not in usernames_set:
+                                    follower_info = {'username': username, 'name': name}
+                                    append_follower_jsonl(data_filename, follower_info)
+                                    followers.append(follower_info)
+                                    usernames_set.add(username)
+                                    new_followers_count += 1
+                                    print(f"Added follower {len(followers)}: @{username} ({name})")
+
+                                if len(followers) >= max_usernames:
+                                    save_metadata(meta_filename, cursor, len(followers))
+                                    return followers
+
+                            except (KeyError, TypeError):
+                                continue
+
+                        elif entry['content']['entryType'] == 'TimelineTimelineCursor' and entry['content']['cursorType'] == 'Bottom':
+                            next_cursor = entry['content']["value"]
+                            print(f"Found next cursor: {next_cursor[:50]}...")
+
             cursor = next_cursor
-            
-            # Save progress after each batch
-            save_data(save_filename, followers, cursor)
-            print(f"Saved progress: {len(followers)} total followers, {new_followers_count} new in this batch")
+            save_metadata(meta_filename, cursor, len(followers))
+            print(f"Saved metadata: {len(followers)} total followers, {new_followers_count} new in this batch")
 
-            # If no more cursor, break the loop
             if not cursor:
                 print("No more pages to fetch")
                 break
 
-            # Rate limiting: sleep to avoid hitting API limits
             print("Waiting 60 seconds before next request...")
             time.sleep(60)
-
         except requests.RequestException as e:
             print(f"Request failed: {e}")
-            # Save current progress before breaking
-            save_data(save_filename, followers, cursor)
-            break
-
-    # Final save
-    save_data(save_filename, followers, None)  # Clear cursor when finished
+            raise RuntimeError(f"Failed to fetch followers: {e}") from e
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise RuntimeError(f"Unexpected error occurred: {e}") from e
     return followers
 
 if __name__ == "__main__":
     headers = cookies_headers.API_HEADERS
+    user_id = "1260741614508691457"  # Amit
+    base_filename = f"followers_{user_id}"
 
-    user_id = "1468103131737247748"  # Amit
-    save_filename = f"followers_{user_id}.json"
-    
     print("Starting followers collection...")
-    followers = get_followers(user_id, headers, max_usernames=200000, save_filename=save_filename)
+    followers = get_followers(user_id, headers, max_usernames=224000, base_filename=base_filename)
     print(f"\nTotal followers retrieved: {len(followers)}")
-    
-    # Print summary
+
     if followers:
         print("\nSample followers:")
-        for i, follower in enumerate(followers[:5]):  # Show first 5
+        for i, follower in enumerate(followers[:5]):
             print(f"  {i+1}. @{follower['username']} - {follower['name']}")
         if len(followers) > 5:
             print(f"  ... and {len(followers) - 5} more")

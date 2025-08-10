@@ -2,3 +2,5 @@ __pycache__
 *.json
 *.jsonl
 config/cookies_headers.py
+data/
+*.html
