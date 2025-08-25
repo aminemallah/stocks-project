@@ -41,7 +41,7 @@ def main():
     for item in tickers:
         ticker = item['ticker']
         # Use csp_percentage_down if provided, else default to -0.10
-        threshold = item.get('csp_percentage_down', -0.10)
+        threshold = item.get('csp_percentage_down', -0.15)
         if check_price_drop(ticker, threshold=threshold):
             print(f"Reminder to do cash-secured puts on {ticker}")
             common_utils.notify_message_aleph(f"Reminder to do cash-secured puts on {ticker}")

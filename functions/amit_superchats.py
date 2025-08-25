@@ -1,115 +1,148 @@
 from chat_downloader import ChatDownloader
 from currency_converter import CurrencyConverter
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from config.config_daily_fetch_amit_audience import keywords
 
 blacklist = ["user1", "user2", "user3"]
 links = [
-    "https://www.youtube.com/watch?v=RpFGNkhVJUc",
-    "https://www.youtube.com/watch?v=1s-ov1jHgPQ&pp=0gcJCccJAYcqIYzv",
-    "https://www.youtube.com/watch?v=fKk-p_DI8so",
-    "https://www.youtube.com/watch?v=aMKdkefZQiQ",
-    "https://www.youtube.com/watch?v=HpeAKKUySsY",
-    "https://www.youtube.com/watch?v=mglvN2mxBqk",
-    "https://www.youtube.com/watch?v=rU8aj00TVkE",
-    "https://www.youtube.com/watch?v=Y8XQhcEvU6E",
-    "https://www.youtube.com/watch?v=3cNxGUftbg4",
-    "https://www.youtube.com/watch?v=oEhUr1VNFHg",
-    "https://www.youtube.com/watch?v=QQ1_VxjqOG8",
-    "https://www.youtube.com/watch?v=-_89G9DEVBk",
-    "https://www.youtube.com/watch?v=rQi5F9stfWo",
-    "https://www.youtube.com/watch?v=dBD08qhVToI",
-    "https://www.youtube.com/watch?v=QUE5oCBTujQ",
-    "https://www.youtube.com/watch?v=i2FgDjfiijc",
-    "https://www.youtube.com/watch?v=_ybuKRuiQAM",
-    "https://www.youtube.com/watch?v=3HAhxrBQQKo",
-    "https://www.youtube.com/watch?v=TaW3liTZgDw",
-    "https://www.youtube.com/watch?v=taqYtYXChCg",
-    "https://www.youtube.com/watch?v=eiTzO9B6nqs",
-    "https://www.youtube.com/watch?v=ihKtkPJaeKg",
-    "https://www.youtube.com/watch?v=auM0rfZTQD0",
-    "https://www.youtube.com/watch?v=Cn518augEZY&t=7914s",
-    "https://www.youtube.com/watch?v=Lok50jinhMs&pp=0gcJCccJAYcqIYzv",
-    "https://www.youtube.com/watch?v=gfq2WPG7bV4&pp=0gcJCccJAYcqIYzv",
-    "https://www.youtube.com/watch?v=81ay9XdlAW8",
-    "https://www.youtube.com/watch?v=6HUX6Q1zkgM&t=1441s",
-    "https://www.youtube.com/watch?v=x4ISEOulfdU",
-    "https://www.youtube.com/watch?v=TRgjaq0QIxY",
-    "https://www.youtube.com/watch?v=N4YijPBJAcU",
-    "https://www.youtube.com/watch?v=27gTKoLmHx8&t=6143s",
-    "https://www.youtube.com/watch?v=Y8PSrjdsUco",
-    "https://www.youtube.com/watch?v=tneMeoJY6Vo&t=1166s",
-    "https://www.youtube.com/watch?v=zRXv9fNAXLI",
-    "https://www.youtube.com/watch?v=SUkua8sJhNg",
-    "https://www.youtube.com/watch?v=BtXpg9qDqRc",
-    "https://www.youtube.com/watch?v=jnebtnYvXw4&t=8070s",
-    "https://www.youtube.com/watch?v=tTuquG4OGrc&pp=0gcJCccJAYcqIYzv",
-    "https://www.youtube.com/watch?v=i6dfQktioAs",
-    "https://www.youtube.com/watch?v=UzxHklKVe9o",
-    "https://www.youtube.com/watch?v=03MBnCI6VJA",
-    "https://www.youtube.com/watch?v=XhShE1PsNW0",
-    "https://www.youtube.com/watch?v=Qd0jX5rH4-A",
-    "https://www.youtube.com/watch?v=VwyhGKa_700",
-    "https://www.youtube.com/watch?v=BQWivaWmwX0&t=6712s",
-    "https://www.youtube.com/watch?v=-1wGfmiq7Rw&pp=0gcJCccJAYcqIYzv",
-    "https://www.youtube.com/watch?v=avu6hSyHRPE",
-    "https://www.youtube.com/watch?v=GuJKV0guJno",
-    "https://www.youtube.com/watch?v=_FbsWIzbAJE",
-    "https://www.youtube.com/watch?v=s7QpkgwTp14",
-    "https://www.youtube.com/watch?v=k9W4-dOGZDk",
-    "https://www.youtube.com/watch?v=1ZaFAXemad4",
-    "https://www.youtube.com/watch?v=ke6-bRmvCzA",
-    "https://www.youtube.com/watch?v=uHmWUNIOU78",
-    "https://www.youtube.com/watch?v=P4EYjDjVh9Q",
-    "https://www.youtube.com/watch?v=3E7eL0Cp20U",
-    "https://www.youtube.com/watch?v=evgG3_H7tyw",
-    "https://www.youtube.com/watch?v=HFgoDrs_G1U",
-    "https://www.youtube.com/watch?v=WXhE7Oi_fJU",
-    "https://www.youtube.com/watch?v=f3Xd6LYZOso&t=1s",
-    "https://www.youtube.com/watch?v=H5lnpFZSVF0",
-    "https://www.youtube.com/watch?v=CmXJqzi9x1Y",
-    "https://www.youtube.com/watch?v=uUytkRwQwrg&t=8106s&pp=0gcJCccJAYcqIYzv",
-    "https://www.youtube.com/watch?v=gCysa53eMdw",
-    "https://www.youtube.com/watch?v=EODsAHVMN9o",
-    "https://www.youtube.com/watch?v=0D_t1_epRgw&t=10914s",
-    "https://www.youtube.com/watch?v=GiiTAFoaOYk",
-    "https://www.youtube.com/watch?v=5lh6-obXLT8",
-    "https://www.youtube.com/watch?v=09reXWqFfPA&pp=0gcJCccJAYcqIYzv",
-    "https://www.youtube.com/watch?v=7LckTZM_x7I",
-    "https://www.youtube.com/watch?v=IgYvBeC9rAU",
-    "https://www.youtube.com/watch?v=LA4rSTwe0Ts",
-    "https://www.youtube.com/watch?v=CgDkdSzGp_w",
-    "https://www.youtube.com/watch?v=p8QPc5jZoO0",
-    "https://www.youtube.com/watch?v=rBvu6BcA83o",
-    "https://www.youtube.com/watch?v=CD-3dfOPFmI",
-    "https://www.youtube.com/watch?v=uP0GNTnPsTc",
-    "https://www.youtube.com/watch?v=Bq63G6ZMxvU",
-    "https://www.youtube.com/watch?v=4fXKoptZQUs",
-    "https://www.youtube.com/watch?v=0a1zViFyFNI",
-    "https://www.youtube.com/watch?v=9uVKBsx0tpc",
-    "https://www.youtube.com/watch?v=mq6OPE23mLA",
-    "https://www.youtube.com/watch?v=g1AiOCiHxuE",
-    "https://www.youtube.com/watch?v=KWZV2qt6Ui8&t=20s",
-    "https://www.youtube.com/watch?v=RJ0HUQRE0Ts&t=2s",
-    "https://www.youtube.com/watch?v=T4YNmMdjq6E"
-]
+"https://www.youtube.com/watch?v=Az9G8Ur0it8",
+# "https://www.youtube.com/watch?v=AfPyBdd_Uz8",
+"https://www.youtube.com/watch?v=0_icR59dJ2A",
+"https://www.youtube.com/watch?v=ppT3DwSGzAs",
+"https://www.youtube.com/watch?v=eKB5V8W51ts",
+"https://www.youtube.com/watch?v=8dQXhffKEV0",
+"https://www.youtube.com/watch?v=aHpbhik6PyM",
+"https://www.youtube.com/watch?v=EfvbvIUIzTM",
+"https://www.youtube.com/watch?v=_AUdmOeoycs",
+"https://www.youtube.com/watch?v=2p04lyKXk3I&t=5475s",
+"https://www.youtube.com/watch?v=ls7DyLSZMTg",
+"https://www.youtube.com/watch?v=yWEIkkiOOTw",
+"https://www.youtube.com/watch?v=fFP_4hcWzag&t=6664s",
+"https://www.youtube.com/watch?v=aP3w6Gl0e-k&t=6263s",
+"https://www.youtube.com/watch?v=zzd_6cc-A5E",
+"https://www.youtube.com/watch?v=QrVHvm0w02c",
+"https://www.youtube.com/watch?v=hPKsJnrWA8Y",
+"https://www.youtube.com/watch?v=FOzXO88nvso",
+"https://www.youtube.com/watch?v=hCe1-09Igag",
+"https://www.youtube.com/watch?v=vh4yEnhnym4&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=4lHVQ2HIhBU",
+"https://www.youtube.com/watch?v=M2u1-Io1gjo",
+"https://www.youtube.com/watch?v=oo9mRRaviRc&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=95x2lspiM-U",
+"https://www.youtube.com/watch?v=xx2HRwZsNhc",
+"https://www.youtube.com/watch?v=2jsbkXpGx0c",
+"https://www.youtube.com/watch?v=ttCGRiehspQ",
+"https://www.youtube.com/watch?v=zewhSG-yZ9Y",
+"https://www.youtube.com/watch?v=Nw5Kbvy1dzE",
+"https://www.youtube.com/watch?v=rfOoYCKr4i4&t=4051s",
+"https://www.youtube.com/watch?v=ubvGMdvxo_Q&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=Zk8ijJXXctQ",
+"https://www.youtube.com/watch?v=XedDKI9kx5c&t=28s",
+"https://www.youtube.com/watch?v=RyBWwtQYgiM",
+"https://www.youtube.com/watch?v=bdhdKe7FjAU",
+"https://www.youtube.com/watch?v=7IRYdlpmkDA&t=585s",
+"https://www.youtube.com/watch?v=Erb0YvcRW70&t=1059s",
+"https://www.youtube.com/watch?v=tAFdpT7jzhk",
+"https://www.youtube.com/watch?v=VxXN9a4t_Kw",
+"https://www.youtube.com/watch?v=cpL9oiOcnoI",
+"https://www.youtube.com/watch?v=yF3zUQ_vFWc&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=d_zz54GgQgo&t=7273s",
+"https://www.youtube.com/watch?v=-OPo1YiYbPE&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=Ed0KOsWPxJ0",
+"https://www.youtube.com/watch?v=zUrUH4EiWzg&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=hM0wCFbGIuE",
+"https://www.youtube.com/watch?v=NMD_8QQ6QEk",
+"https://www.youtube.com/watch?v=9x3rNxfioKA",
+"https://www.youtube.com/watch?v=b0anW1C6VdQ&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=klOWQ-qrExA",
+"https://www.youtube.com/watch?v=ZNxsXdFZ148",
+"https://www.youtube.com/watch?v=6tbXpQ97prY",
+"https://www.youtube.com/watch?v=OtzTBCYw_00",
+"https://www.youtube.com/watch?v=oTbpm377Za4",
+"https://www.youtube.com/watch?v=TwxsBAuu5dw",
+"https://www.youtube.com/watch?v=UORVYKi7Ur8&t=4980s",
+"https://www.youtube.com/watch?v=2YulE0_wggg",
+"https://www.youtube.com/watch?v=57RuDYCQ-WY",
+"https://www.youtube.com/watch?v=UsxiGI0ybz4",
+"https://www.youtube.com/watch?v=3fyNH_CeGtg",
+"https://www.youtube.com/watch?v=hdbvtGnuwUE",
+"https://www.youtube.com/watch?v=he1NsQdcd1U",
+"https://www.youtube.com/watch?v=Hpk2TLhRQTY",
+"https://www.youtube.com/watch?v=Ixxhe0S0z5k&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=yRvSSoASyo8&t=5271s",
+"https://www.youtube.com/watch?v=xvAbmCvapoA",
+"https://www.youtube.com/watch?v=E3C4hGcccqU",
+"https://www.youtube.com/watch?v=W3_lYqt13Qo",
+"https://www.youtube.com/watch?v=VphCZs1ThBY",
+"https://www.youtube.com/watch?v=S9wEH4dOGf0",
+"https://www.youtube.com/watch?v=M9thNJWLxFU&t=361s&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=SEUjJ9XT43E",
+"https://www.youtube.com/watch?v=CDYpvMOuTkA&t=8292s",
+"https://www.youtube.com/watch?v=cDgu9zE_360",
+"https://www.youtube.com/watch?v=eQqlKFMCRvk",
+"https://www.youtube.com/watch?v=EP3EaTnoJ6g",
+"https://www.youtube.com/watch?v=IyMBPtjeP5M",
+"https://www.youtube.com/watch?v=rRtltplhCW4&t=270s",
+"https://www.youtube.com/watch?v=cLyEfCEfVRI",
+"https://www.youtube.com/watch?v=F-zIZ6yzG00&t=3128s",
+"https://www.youtube.com/watch?v=qKi1eKK1oGQ",
+"https://www.youtube.com/watch?v=JzUf6hH-Drg",
+"https://www.youtube.com/watch?v=Iq1XQcpL7eg&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=W946BKMEhiw&t=1016s",
+"https://www.youtube.com/watch?v=7WSAcLar1Ek&t=9932s",
+"https://www.youtube.com/watch?v=s67ui9Jv0Hs",
+"https://www.youtube.com/watch?v=E7ABmDTxLIo&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=KSBQx8te25s",
+"https://www.youtube.com/watch?v=4suiUT1VT0U",
+"https://www.youtube.com/watch?v=H4nizyAPcc8",
+"https://www.youtube.com/watch?v=od9cLcekrmA",
+"https://www.youtube.com/watch?v=ZjxgMRu-loE&t=14s",
+"https://www.youtube.com/watch?v=C2HHXTspBWs",
+"https://www.youtube.com/watch?v=E9YRrjvbPII&t=1s",
+"https://www.youtube.com/watch?v=C0190ftJusw",
+"https://www.youtube.com/watch?v=GJMULPRD68Q",
+"https://www.youtube.com/watch?v=zMm738PQPeU&pp=0gcJCa0JAYcqIYzv",
+"https://www.youtube.com/watch?v=9iMv9mWp-zg",
+"https://www.youtube.com/watch?v=m0ba17at9l8",
+"https://www.youtube.com/watch?v=QKUMGYNL_W0",
+"https://www.youtube.com/watch?v=WhLeQoLY4vk",
+"https://www.youtube.com/watch?v=H2KOzymkwJ4",
+"https://www.youtube.com/watch?v=DEHBYUaVTS0",
+"https://www.youtube.com/watch?v=0_icR59dJ2A",
+"https://www.youtube.com/watch?v=eKB5V8W51ts",]
 
 c = CurrencyConverter()
-unique_users = set()
+qualified_users = set()
 user_donations = {}
 total_donations = 0
+all_messages = []   # store all messages for second pass
+
+log_file = "superchat_log.txt"
 
 for url in links:
     print(f"\nProcessing video: {url}")
     try:
-        chat = ChatDownloader().get_chat(url, message_groups=['superchat'])
+        chat = ChatDownloader().get_chat(url, message_groups=['messages', 'superchat'])
+
+        # -------- PASS 1: Find qualified users --------
         for message in chat:
             author = message.get('author', {}).get('name', 'Unknown')
             if author.lower() in [name.lower() for name in blacklist]:
                 continue
-            
+
+            # Save all messages for pass 2
+            all_messages.append(message)
+
+            # Handle Superchat
             money = message.get('money', {})
             amount = money.get('amount', 0)
             currency = money.get('currency', 'USD')
-            
+
             if currency != "USD" and currency is not None:
                 try:
                     amount = c.convert(amount, currency, 'USD')
@@ -118,22 +151,43 @@ for url in links:
                     continue
 
             if amount > 49:
-                unique_users.add(author)
+                qualified_users.add(author)
                 if author not in user_donations:
                     user_donations[author] = []
                 user_donations[author].append(amount)
                 total_donations += amount
-                timestamp = message.get('time_in_seconds', 0)
-                text = message.get('message', '')
-                print(f"{timestamp:.2f} | {author}: {currency}${amount:.2f} (~${amount:.2f} USD) - {text}")
-                
+
     except Exception as e:
         print(f"Error processing {url}: {e}")
 
-print("\nUnique users with Superchats > $50 USD equivalent across all videos:")
-for user in sorted(unique_users):
-    donations = [f"${amt:.2f}" for amt in user_donations[user]]
+# -------- PASS 2: Collect messages for qualified users --------
+user_messages = {}
+for message in all_messages:
+    author = message.get('author', {}).get('name', 'Unknown')
+    if author in qualified_users:
+        text = message.get('message', '')
+        timestamp = message.get('time_in_seconds', 0)
+        if author not in user_messages:
+            user_messages[author] = []
+        user_messages[author].append(f"{timestamp:.2f} | {text}")
+
+# -------- SAVE RESULTS --------
+with open(log_file, "w", encoding="utf-8") as f:
+    for user in sorted(qualified_users):
+        donations = [f"${amt:.2f}" for amt in user_donations.get(user, [])]
+        total_user_amount = sum(user_donations.get(user, []))
+        f.write(f"User: {user}\n")
+        f.write(f"Total Donations: ${total_user_amount:.2f}\n")
+        f.write(f"Superchats: {', '.join(donations)}\n")
+        f.write("Messages:\n")
+        for msg in user_messages.get(user, []):
+            f.write(f"  {msg}\n")
+        f.write("\n" + "="*50 + "\n\n")
+
+print("\nUnique users with Superchats > $49 USD equivalent across all videos:")
+for user in sorted(qualified_users):
     total_user_amount = sum(user_donations[user])
-    print(f"{user}: {', '.join(donations)} USD (Total: ${total_user_amount:.2f} USD)")
+    print(f"{user}: ${total_user_amount:.2f} USD")
 
 print(f"\nTotal donations across all users: ${total_donations:.2f} USD")
+print(f"Log file saved to: {os.path.abspath(log_file)}")

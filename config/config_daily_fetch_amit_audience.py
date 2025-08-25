@@ -26,6 +26,13 @@ keywords = [
     'Sam B',
     'o',
     'Julian Petroulas',
+    'Josh Kawcak',
+    'Mans On Mars',
+    'Teve'
+    'Diane Helms'
+    # 'bay-ray'
+    # 'FallingKnife'
+
     # 'Rob Borr',
     # 'Dragos',
     # 'Derek Dagger',
