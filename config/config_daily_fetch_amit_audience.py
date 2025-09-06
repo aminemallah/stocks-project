@@ -6,7 +6,6 @@ keywords = [
     'VVV',
     'FoolsGold11',
     'Kall me Kurtis',
-    # 'Chad Wahlquist',
     'Nate Endicott',
     'Derek Wall',
     'Invest with MEH',
@@ -28,10 +27,14 @@ keywords = [
     'Julian Petroulas',
     'Josh Kawcak',
     'Mans On Mars',
-    'Teve'
-    'Diane Helms'
+    'Diane Helms',
+    'Pedro Gonzales',
+    'Friday Nebula'
     # 'bay-ray'
     # 'FallingKnife'
+    # 'siegejh'
+    # 'Eric Hooge'
+    # 'Sumit Sangha'
 
     # 'Rob Borr',
     # 'Dragos',

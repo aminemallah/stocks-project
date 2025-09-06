@@ -76,7 +76,7 @@ def process_channel(channel_url):
                 print(f"Processing video: {ytvid_id} from {channel_url}")
                 chats = amit_chats.run(ytvid_url)
                 concatenated_chats = "\n".join(chats)
-                max_length = 4000
+                max_length = 3500
                 for i in range(0, len(concatenated_chats), max_length):
                     batch = concatenated_chats[i:i + max_length]
                     common_utils.notify_message_aleph(batch)
