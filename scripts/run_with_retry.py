@@ -19,4 +19,5 @@ def run_script(script_path):
 
 if __name__ == "__main__":
     script_to_run = "scripts/x_fetch_followers.py"
+    script_to_run = "scripts/find_good_investors_x.py"
     run_script(script_to_run)
