@@ -14,7 +14,7 @@ from common import common_utils
 variables = API_VARIABLES
 features = API_FEATURES
 
-INPUT_FILE = "data/followers_1548800609905770497_foolsgold.jsonl"
+INPUT_FILE = "data/followers_following.jsonl"
 OUTPUT_FILE = "data/investor_words.jsonl"
 
 
@@ -39,8 +39,8 @@ def process_user(username: str):
             params=params,
             headers=headers,
         )
-        response_json = response.json()
-        common_utils.save_json_file_to_disk("data/timeline.json", response_json)
+
+        # print(response.status_code)
 
         try:
             response_json = response.json()
@@ -49,7 +49,10 @@ def process_user(username: str):
             with open(error_file, "w", encoding="utf-8") as f:
                 f.write(response.text)
             print(f"[ERROR] Failed to parse JSON for user {username}, saved to {error_file}")
-            return []
+            break
+
+        common_utils.save_json_file_to_disk("data/timeline.json", response_json)
+        
 
         # Stop if no entries
         instructions = response_json["data"]["search_by_raw_query"]["search_timeline"]["timeline"]["instructions"]

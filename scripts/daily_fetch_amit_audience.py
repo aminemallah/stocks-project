@@ -15,7 +15,8 @@ from functions import amit_chats
 yt_channels = [
     "https://www.youtube.com/@amitinvesting/streams",
     "https://www.youtube.com/@RealMattMoney/streams",
-    "https://www.youtube.com/@Funofinvesting/streams",
+    # "https://www.youtube.com/@stevenfiorillo1/streams"
+    # "https://www.youtube.com/@Funofinvesting/streams",
     "https://www.youtube.com/@futurenvesting/streams"
 ]
 
@@ -67,7 +68,7 @@ def process_channel(channel_url):
         return
 
     for yt_obj in videos:
-        if video_count >= 2:
+        if video_count >= 3:
             break
         if 'richItemRenderer' in yt_obj and 'videoRenderer' in yt_obj['richItemRenderer']['content']:
             ytvid_id = yt_obj['richItemRenderer']['content']['videoRenderer']['videoId']

@@ -1,6 +1,7 @@
 # you can get it from bash curl extract
-USER_ID = "1548800609905770497"
-
+USER_ID = "1325242580104310784" 
+# manohar
+# vitalynutella
 
 import requests
 import json
@@ -65,7 +66,8 @@ def get_followers(user_id, headers, max_usernames=100, base_filename='followers'
 
     cursor = saved_cursor
     # 'https://x.com/i/api/graphql/cE9r5yCVtheWR0ZLRSCFOQ/Following'
-    base_url = 'https://x.com/i/api/graphql/mCKZXEfy1vBxKiWEddhRDA/Followers'
+    # 'https://x.com/i/api/graphql/mCKZXEfy1vBxKiWEddhRDA/Followers'
+    base_url = 'https://x.com/i/api/graphql/cE9r5yCVtheWR0ZLRSCFOQ/Following'
 
     while len(followers) < max_usernames:
         variables = cookies_headers.API_VARIABLES
@@ -143,7 +145,7 @@ def get_followers(user_id, headers, max_usernames=100, base_filename='followers'
 if __name__ == "__main__":
     headers = cookies_headers.API_HEADERS
     user_id = USER_ID
-    base_filename = f"followers_{user_id}"
+    base_filename = f"data/followers_following"
 
     print("Starting followers collection...")
     followers = get_followers(user_id, headers, max_usernames=224000, base_filename=base_filename)
