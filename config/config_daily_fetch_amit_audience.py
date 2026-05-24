@@ -11,7 +11,7 @@ keywords = [
     'Gavin Moore',
     'Moore Gavin',
     'Manohar Suryavanshi',
-    'Badie',
+    # 'Badie',
     'Bart Van den Eynde',
     # 'Bobb',
     '“JASON HUANG”',
@@ -23,7 +23,7 @@ keywords = [
     'JoshKawcak',
     'Mans On Mars',
     'Diane Helms',
-    'pedrogonzales6117',
+    # 'pedrogonzales6117',
     'Friday Nebula'
     # 'bay-ray'
     # 'FallingKnife'

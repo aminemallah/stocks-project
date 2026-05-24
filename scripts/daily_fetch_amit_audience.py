@@ -15,9 +15,9 @@ from functions import amit_chats
 yt_channels = [
     "https://www.youtube.com/@amitinvesting/streams",
     "https://www.youtube.com/@RealMattMoney/streams",
-    # "https://www.youtube.com/@stevenfiorillo1/streams"
+    "https://www.youtube.com/@stevenfiorillo1/streams"
     # "https://www.youtube.com/@Funofinvesting/streams",
-    "https://www.youtube.com/@futurenvesting/streams"
+    # "https://www.youtube.com/@futurenvesting/streams"
 ]
 
 PROCESSED_LINKS_FILE = "data/processed_amit_yt_links.jsonl"
@@ -61,10 +61,34 @@ def process_channel(channel_url):
                     return
 
     video_count = 0
+    videos = []
+    
+    # Try to find the Live/Streams tab dynamically
     try:
-        videos = yt_initial_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][3]['tabRenderer']['content']['richGridRenderer']['contents'][:4]
-    except KeyError:
-        print(f"Could not parse videos for {channel_url}")
+        tabs = yt_initial_data['contents']['twoColumnBrowseResultsRenderer']['tabs']
+        
+        # Look for the tab with Live/Streams content
+        for tab in tabs:
+            if 'tabRenderer' in tab:
+                tab_title = tab['tabRenderer'].get('title', '')
+                # Check if this is the Live tab
+                if 'content' in tab['tabRenderer']:
+                    try:
+                        tab_contents = tab['tabRenderer']['content']['richGridRenderer']['contents']
+                        # If we find valid content, use it
+                        if tab_contents:
+                            videos = tab_contents[:4]
+                            print(f"Found {len(videos)} videos in tab: {tab_title}")
+                            break
+                    except (KeyError, TypeError):
+                        continue
+        
+        if not videos:
+            print(f"Could not find any videos in the streams tab for {channel_url}")
+            return
+            
+    except (KeyError, TypeError) as e:
+        print(f"Could not parse videos for {channel_url}: {e}")
         return
 
     for yt_obj in videos:
@@ -76,6 +100,12 @@ def process_channel(channel_url):
             if ytvid_url not in processed_links:
                 print(f"Processing video: {ytvid_id} from {channel_url}")
                 chats = amit_chats.run(ytvid_url)
+                
+                # If chats is None, it means timeout occurred - skip and don't mark as processed
+                if chats is None:
+                    print(f"Skipping video due to timeout: {ytvid_url}")
+                    continue
+                
                 concatenated_chats = "\n".join(chats)
                 max_length = 3500
                 for i in range(0, len(concatenated_chats), max_length):
